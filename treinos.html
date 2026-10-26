@@ -42,7 +42,7 @@ li.done .ck{background:var(--ok);border-color:var(--ok)}
 <div id="view"></div>
 </main>
 <script>
-var KEY="treinos-v1",S={lists:[],active:null};
+var KEY="treinos-v1",S={lists:[],active:null},editing=false;
 try{var r=localStorage.getItem(KEY);if(r){var p=JSON.parse(r);if(p&&Array.isArray(p.lists))S=p}}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
@@ -54,27 +54,30 @@ function render(){
   var v=document.getElementById("view"),l=cur();
   if(!l){v.innerHTML='<div class="em">Crie seu primeiro treino acima, como “Costas” ou “Peito”.</div>';return}
   var d=l.items.filter(function(i){return i.done}).length;
-  v.innerHTML='<div class="card"><div class="hd"><h2>'+esc(l.name)+'</h2><span class="pg">'+d+'/'+l.items.length+' feitos</span></div>'
+  v.innerHTML='<div class="card"><div class="hd">'+(editing?'<input id="rn" value="'+esc(l.name)+'" maxlength="40"><button id="rok" style="margin-left:8px">OK</button>':'<h2>'+esc(l.name)+'</h2><span class="pg">'+d+'/'+l.items.length+' feitos</span>')+'</div>'
    +'<div class="row"><input id="ni" placeholder="Adicionar exercício (ex: Remada 4x10)" maxlength="80"><button id="ai">+</button></div>'
    +'<ul>'+(l.items.length?l.items.map(function(i){return '<li class="'+(i.done?'done':'')+'"><button class="ck" data-ck="'+i.id+'" aria-label="Concluir">'+(i.done?'✓':'')+'</button><span class="t">'+esc(i.text)+'</span><button class="x" data-rm="'+i.id+'" aria-label="Remover">×</button></li>'}).join(""):'<div class="em">Nenhum exercício ainda.</div>')+'</ul>'
-   +'<div class="row" style="margin-top:10px;justify-content:space-between"><button class="g" id="rs">Desmarcar todos</button><button class="g" id="dl">Excluir treino</button></div></div>';
+   +'<div class="row" style="margin-top:10px;justify-content:space-between"><button class="g" id="rs">Desmarcar todos</button><button class="g" id="rnb">Renomear</button><button class="g" id="dl">Excluir treino</button></div></div>';
 }
 function addList(){var i=document.getElementById("nl"),n=i.value.trim();if(!n)return;var l={id:uid(),name:n,items:[]};S.lists.push(l);S.active=l.id;i.value="";save();render()}
 function addItem(){var i=document.getElementById("ni"),n=i.value.trim(),l=cur();if(!n||!l)return;l.items.push({id:uid(),text:n,done:false});save();render();document.getElementById("ni").focus()}
+function rename(){var l=cur(),i=document.getElementById("rn");if(l&&i&&i.value.trim())l.name=i.value.trim();editing=false;save();render()}
 document.getElementById("al").onclick=addList;
 document.getElementById("nl").onkeydown=function(e){if(e.key==="Enter")addList()};
 document.addEventListener("click",function(e){
   var b=e.target.closest("button");if(!b)return;var l=cur();
-  if(b.dataset.tab){S.active=b.dataset.tab}
+  if(b.dataset.tab){S.active=b.dataset.tab;editing=false}
   else if(b.id==="ai"){return addItem()}
   else if(b.dataset.ck&&l){var it=l.items.find(function(x){return x.id===b.dataset.ck});if(it)it.done=!it.done}
   else if(b.dataset.rm&&l){l.items=l.items.filter(function(x){return x.id!==b.dataset.rm})}
   else if(b.id==="rs"&&l){l.items.forEach(function(x){x.done=false})}
-  else if(b.id==="dl"&&l){if(!confirm("Excluir o treino "+l.name+"?"))return;S.lists=S.lists.filter(function(x){return x.id!==l.id});S.active=S.lists.length?S.lists[0].id:null}
+  else if(b.id==="rnb"&&l){editing=true;render();var r=document.getElementById("rn");if(r){r.focus();r.select()}return}
+  else if(b.id==="rok"&&l){return rename()}
+  else if(b.id==="dl"&&l){if(!confirm("Excluir o treino "+l.name+"?"))return;S.lists=S.lists.filter(function(x){return x.id!==l.id});S.active=S.lists.length?S.lists[0].id:null;editing=false}
   else return;
   save();render();
 });
-document.addEventListener("keydown",function(e){if(e.key==="Enter"&&e.target.id==="ni")addItem()});
+document.addEventListener("keydown",function(e){if(e.key==="Enter"&&e.target.id==="ni")addItem();if(e.key==="Enter"&&e.target.id==="rn")rename();if(e.key==="Escape"&&e.target.id==="rn"){editing=false;render()}});
 if(!cur()&&S.lists.length)S.active=S.lists[0].id;
 render();
 </script>
