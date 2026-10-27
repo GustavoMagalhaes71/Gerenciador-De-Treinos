@@ -2,9 +2,9 @@
 
 App web simples para organizar treinos de academia: monte listas por treino, marque os exercícios feitos e acompanhe a evolução de carga semana a semana.
 
-🔗 **Acesse:** [link do site]
+🔗 **Acesse:** [(https://gerentetreino.netlify.app/)]
 
-![Tela do app]([https://gerentetreino.netlify.app/].png)
+![Tela do app]([nome-do-print].png)
 
 ## Funcionalidades
 
