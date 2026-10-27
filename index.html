@@ -58,7 +58,7 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function cur(){return S.lists.find(function(l){return l.id===S.active})}
-function sum(i){return i.sets&&i.sets.length?'<small class="sm">'+i.sets.map(function(s){return esc(s.kg)+" kg"+(s.reps?" - "+esc(s.reps)+" rep":"")}).join(" | ")+'</small>':''}
+function sum(i){return i.sets&&i.sets.length?'<small class="sm">'+i.sets.map(function(s,n){return "S"+(n+1)+": "+esc(s.kg)+" kg"+(s.reps?" - "+esc(s.reps)+" rep":"")}).join(" | ")+'</small>':''}
 function panel(i){var la=(i.sets||[]).slice(-1)[0]||{kg:"",reps:""};return '<div class="pr">'+(i.sets||[]).map(function(x,n){return '<div class="sr"><span>Série '+(n+1)+' · <b>'+esc(x.kg)+' kg</b>'+(x.reps?' × '+esc(x.reps)+' reps':'')+'</span><button class="x" data-rs="'+i.id+':'+n+'" aria-label="Remover série">×</button></div>'}).join("")+'<div class="row"><input id="kg" type="number" inputmode="decimal" step="0.5" min="0" placeholder="Carga (kg)" value="'+esc(la.kg)+'"><input id="rp" type="number" inputmode="numeric" min="0" placeholder="Reps" value="'+esc(la.reps)+'"><button id="as" data-as="'+i.id+'">+</button></div></div>'}
 function addSet(id){var l=cur(),it=l&&l.items.find(function(x){return x.id===id}),k=document.getElementById("kg"),r=document.getElementById("rp");if(!it||!k||!k.value)return;(it.sets=it.sets||[]).push({kg:k.value,reps:r?r.value:""});save();render();var n=document.getElementById("kg");if(n)n.focus()}
 function render(){
