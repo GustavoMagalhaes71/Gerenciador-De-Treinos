@@ -57,7 +57,7 @@ li.ovb{box-shadow:0 2px 0 var(--ac)}
 .hc{margin-bottom:12px}
 .hcw{display:flex;justify-content:space-between;align-items:baseline;font-weight:600;margin-bottom:6px}
 .hcw small{color:var(--mu);font-weight:500;font-size:13px}
-.hr{display:grid;grid-template-columns:40px 1fr 1fr;padding:6px 0;border-top:1px solid var(--bd);font-size:16px}
+.hr{display:grid;grid-template-columns:64px 1fr 1fr;padding:6px 0;border-top:1px solid var(--bd);font-size:16px}
 .hr .hn{color:var(--mu)}
 .em{color:var(--mu);text-align:center;padding:28px 8px}
 </style>
@@ -68,6 +68,7 @@ li.ovb{box-shadow:0 2px 0 var(--ac)}
 <div class="row"><input id="nl" placeholder="Novo treino (ex: Costas)" maxlength="40"><button id="al">Criar</button></div>
 <div class="tabs" id="tabs"></div>
 <div id="view"></div>
+<div id="dev" class="card" hidden style="margin-top:16px"></div>
 </main>
 <div id="hs" hidden></div>
 <script>
@@ -80,17 +81,47 @@ function cur(){return S.lists.find(function(l){return l.id===S.active})}
 function pad(n){return n<10?"0"+n:""+n}
 function wkey(d){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-((x.getDay()+6)%7));return x.getFullYear()+"-"+pad(x.getMonth()+1)+"-"+pad(x.getDate())}
 function wlabel(k){var p=k.split("-"),a=new Date(+p[0],+p[1]-1,+p[2]),b=new Date(a.getFullYear(),a.getMonth(),a.getDate()+6);return pad(a.getDate())+"/"+pad(a.getMonth()+1)+" a "+pad(b.getDate())+"/"+pad(b.getMonth()+1)}
-function rollWeek(){var k=wkey(new Date());if(!S.week){S.week=k;save();return false}if(S.week>=k)return false;S.lists.forEach(function(l){l.items.forEach(function(i){if(i.sets&&i.sets.length){(i.hist=i.hist||[]).push({w:S.week,sets:i.sets})}i.sets=[];i.done=false})});S.week=k;save();return true}
+function rollWeek(){var k=wkey(new Date());if(!S.week){S.week=k;save();return false}if(S.week>=k)return false;S.lists.forEach(function(l){if(l.test)return;l.items.forEach(function(i){if(i.sets&&i.sets.length){(i.hist=i.hist||[]).push({w:S.week,sets:i.sets})}i.sets=[];i.done=false})});S.week=k;save();return true}
 function renderHs(){
   var o=document.getElementById("hs"),l=cur(),it=histId&&l&&l.items.find(function(x){return x.id===histId});
   if(!it){histId=null;o.hidden=true;o.innerHTML="";document.body.style.overflow="";return}
-  function rows(sets){return sets.map(function(s,n){return '<div class="hr"><span class="hn">S'+(n+1)+'</span><span>'+esc(s.kg)+' kg</span><span>'+(s.reps?esc(s.reps)+' rep':'-')+'</span></div>'}).join("")}
+  function rows(sets){return sets.map(function(s,n){return '<div class="hr"><span class="hn">Série '+(n+1)+'</span><span>'+esc(s.kg)+' kg</span><span>'+(s.reps?esc(s.reps)+' repetições':'-')+'</span></div>'}).join("")}
   function mx(sets){var m=Math.max.apply(null,sets.map(function(s){return parseFloat(String(s.kg).replace(",","."))}));return isNaN(m)?"":"máx "+m+" kg"}
   var cards=[];
-  if(it.sets&&it.sets.length)cards.push('<div class="card hc"><div class="hcw"><span>Semana atual · '+wlabel(S.week||wkey(new Date()))+'</span><small>'+mx(it.sets)+'</small></div>'+rows(it.sets)+'</div>');
+  if(it.sets&&it.sets.length)cards.push('<div class="card hc"><div class="hcw"><span>Semana atual · '+wlabel(l.test&&l.simWeek?l.simWeek:(S.week||wkey(new Date())))+'</span><small>'+mx(it.sets)+'</small></div>'+rows(it.sets)+'</div>');
   (it.hist||[]).slice().reverse().forEach(function(x){var st=x.sets||[];cards.push('<div class="card hc"><div class="hcw"><span>Semana '+wlabel(x.w)+'</span><small>'+mx(st)+'</small></div>'+rows(st)+'</div>')});
   o.hidden=false;document.body.style.overflow="hidden";
   o.innerHTML='<div class="hsw"><button class="bk" data-bk="1">← Voltar</button><h2 class="hst">'+esc(it.text)+'</h2><p class="hsb">'+esc(l.name)+' · Histórico de cargas</p>'+(cards.length?cards.join(""):'<div class="em">Sem histórico ainda. As séries da semana atual vão para cá quando a semana virar.</div>')+'</div>'
+}
+function dayAdd(k,n){var p=k.split("-"),d=new Date(+p[0],+p[1]-1,+p[2]+n);return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+function loadDemo(){
+  S.lists=S.lists.filter(function(l){return !l.test});
+  var W=wkey(new Date()),ex=[["Supino reto",20],["Puxada alta",40],["Rosca direta",10]];
+  var items=ex.map(function(e){
+    var hist=[];
+    for(var k=4;k>=1;k--){var g=e[1]+(4-k)*2;hist.push({w:dayAdd(W,-7*k),sets:[{kg:String(g),reps:"12"},{kg:String(g),reps:"12"},{kg:String(g+2),reps:"10"}]})}
+    var c=e[1]+8;
+    return {id:uid(),text:e[0],done:false,sets:[{kg:String(c),reps:"12"},{kg:String(c),reps:"12"}],hist:hist}
+  });
+  var l={id:uid(),name:"Teste (simulação)",test:true,simWeek:W,items:items};
+  S.lists.push(l);S.active=l.id;save();render()
+}
+function simWeek(){
+  var l=S.lists.find(function(x){return x.test});if(!l)return false;
+  var k=l.simWeek||wkey(new Date());
+  l.items.forEach(function(i){if(i.sets&&i.sets.length){(i.hist=i.hist||[]).push({w:k,sets:i.sets})}i.sets=[];i.done=false});
+  l.simWeek=dayAdd(k,7);S.active=l.id;save();render();return true
+}
+function clearDemo(){S.lists=S.lists.filter(function(l){return !l.test});if(!cur())S.active=S.lists.length?S.lists[0].id:null;save();render()}
+function initDev(){
+  var d=document.getElementById("dev");
+  if(location.hash!=="#teste"){d.hidden=true;return}
+  d.hidden=false;
+  d.innerHTML='<h2 style="margin:0 0 6px;font-size:18px">🧪 Modo teste</h2><p class="pg">Cria uma lista separada de exemplo. Seus treinos reais não são alterados.</p><div class="row" style="flex-wrap:wrap"><button id="dv1">Carregar exemplo</button><button id="dv2">Simular virada de semana</button><button id="dv3" class="g">Apagar teste</button></div><p class="pg" id="dvm"></p>';
+  function m(t){document.getElementById("dvm").textContent=t}
+  document.getElementById("dv1").onclick=function(){loadDemo();m("Lista de exemplo criada, com 4 semanas de histórico.")};
+  document.getElementById("dv2").onclick=function(){m(simWeek()?"Semana arquivada. Abra o Histórico de um exercício para ver.":"Carregue o exemplo primeiro.")};
+  document.getElementById("dv3").onclick=function(){clearDemo();m("Lista de teste apagada.")}
 }
 function sum(i){return i.sets&&i.sets.length?'<small class="sm">'+i.sets.map(function(s,n){return "S"+(n+1)+": "+esc(s.kg)+" kg"+(s.reps?" - "+esc(s.reps)+" rep":"")}).join(" | ")+'</small>':''}
 function panel(i){var la=(i.sets||[]).slice(-1)[0]||{kg:"",reps:""};return '<div class="pr">'+(i.sets||[]).map(function(x,n){return '<div class="sr"><span>Série '+(n+1)+' · <b>'+esc(x.kg)+' kg</b>'+(x.reps?' × '+esc(x.reps)+' reps':'')+'</span><button class="x" data-rs="'+i.id+':'+n+'" aria-label="Remover série">×</button></div>'}).join("")+'<div class="row"><input id="kg" type="number" inputmode="decimal" step="0.5" min="0" placeholder="Carga (kg)" value="'+esc(la.kg)+'"><input id="rp" type="number" inputmode="numeric" min="0" placeholder="Reps" value="'+esc(la.reps)+'"><button id="as" data-as="'+i.id+'">+</button></div></div>'}
@@ -117,6 +148,8 @@ function endDrag(){if(!dg)return;var d=dg;dg=null;document.body.classList.remove
 document.addEventListener("pointerup",endDrag);
 document.addEventListener("pointercancel",endDrag);
 document.addEventListener("keydown",function(e){if(e.key==="Escape"&&histId){histId=null;render()}});
+window.addEventListener("hashchange",initDev);
+initDev();
 document.addEventListener("visibilitychange",function(){if(!document.hidden&&rollWeek())render()});
 document.getElementById("al").onclick=addList;
 document.getElementById("nl").onkeydown=function(e){if(e.key==="Enter")addList()};
