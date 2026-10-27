@@ -4,7 +4,7 @@ App web simples para organizar treinos de academia: monte listas por treino, mar
 
 🔗 **Acesse:** [link do site]
 
-![Tela do app]([nome-do-print].png)
+![Tela do app]([https://gerentetreino.netlify.app/].png)
 
 ## Funcionalidades
 
