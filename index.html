@@ -33,7 +33,7 @@ li.done .ck{background:var(--ok);border-color:var(--ok)}
 .x{background:transparent;color:var(--mu);padding:4px 8px;font-size:18px}
 li{flex-wrap:wrap}
 .sm{display:block;font-size:13px;color:var(--mu)}
-.pr{flex-basis:100%;min-width:0;padding:4px 0 4px 38px}
+.pr{flex-basis:100%;min-width:0;padding:4px 0 4px 52px}
 .sr{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:15px}
 .pr .row{margin-top:6px}
 .pr input{width:0;padding:9px;font-size:15px}
@@ -41,12 +41,18 @@ li{flex-wrap:wrap}
 .mn{flex-basis:100%;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;padding:0 0 4px}
 .mn .opt{background:transparent;color:var(--tx);border:1px solid var(--bd);padding:8px 12px;font-size:14px}
 .mn .del{background:transparent;color:#e03131;border:1px solid var(--bd);padding:8px 12px;font-size:14px}
+.dg{flex:none;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;color:var(--mu);font-size:18px;line-height:1;padding:6px 2px}
+li{position:relative}
+li.drag{z-index:5;background:var(--card);box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:grabbing}
+li.ov{box-shadow:0 -2px 0 var(--ac)}
+li.ovb{box-shadow:0 2px 0 var(--ac)}
+.dragging,.dragging *{user-select:none;-webkit-user-select:none}
 .em{color:var(--mu);text-align:center;padding:28px 8px}
 </style>
 </head>
 <body>
 <main>
-<h1>Treinos</h1>
+<h1>🏋️ Meus Treinos</h1>
 <div class="row"><input id="nl" placeholder="Novo treino (ex: Costas)" maxlength="40"><button id="al">Criar</button></div>
 <div class="tabs" id="tabs"></div>
 <div id="view"></div>
@@ -69,12 +75,18 @@ function render(){
   var d=l.items.filter(function(i){return i.done}).length;
   v.innerHTML='<div class="card"><div class="hd">'+(editing?'<input id="rn" value="'+esc(l.name)+'" maxlength="40"><button id="rok" style="margin-left:8px">OK</button>':'<h2>'+esc(l.name)+'</h2><span class="pg">'+d+'/'+l.items.length+' feitos</span>')+'</div>'
    +'<div class="row"><input id="ni" placeholder="Adicionar exercício (ex: Remada 4x10)" maxlength="80"><button id="ai">+</button></div>'
-   +'<ul>'+(l.items.length?l.items.map(function(i){return '<li class="'+(i.done?'done':'')+'"><button class="ck" data-ck="'+i.id+'" aria-label="Concluir">'+(i.done?'✓':'')+'</button><span class="t">'+esc(i.text)+sum(i)+'</span><button class="x" data-mn="'+i.id+'" aria-label="Mais opções">⋯</button>'+(menuId===i.id?'<div class="mn"><button class="opt" data-pg="'+i.id+'">📈 Progressão de carga</button><button class="del" data-rm="'+i.id+'">🗑 Excluir exercício</button></div>':'')+(openId===i.id?panel(i):'')+'</li>'}).join(""):'<div class="em">Nenhum exercício ainda.</div>')+'</ul>'
+   +'<ul>'+(l.items.length?l.items.map(function(i){return '<li data-id="'+i.id+'" class="'+(i.done?'done':'')+'"><span class="dg" aria-label="Arrastar para reordenar" title="Arrastar para reordenar">⠿</span><button class="ck" data-ck="'+i.id+'" aria-label="Concluir">'+(i.done?'✓':'')+'</button><span class="t">'+esc(i.text)+sum(i)+'</span><button class="x" data-mn="'+i.id+'" aria-label="Mais opções">⋯</button>'+(menuId===i.id?'<div class="mn"><button class="opt" data-pg="'+i.id+'">📈 Progressão de carga</button><button class="del" data-rm="'+i.id+'">🗑 Excluir exercício</button></div>':'')+(openId===i.id?panel(i):'')+'</li>'}).join(""):'<div class="em">Nenhum exercício ainda.</div>')+'</ul>'
    +'<div class="row" style="margin-top:10px;justify-content:space-between"><button class="g" id="rs">Desmarcar todos</button><button class="g" id="rnb">Renomear</button><button class="g" id="dl">Excluir treino</button></div></div>';
 }
 function addList(){var i=document.getElementById("nl"),n=i.value.trim();if(!n)return;var l={id:uid(),name:n,items:[]};S.lists.push(l);S.active=l.id;i.value="";save();render()}
 function addItem(){var i=document.getElementById("ni"),n=i.value.trim(),l=cur();if(!n||!l)return;l.items.push({id:uid(),text:n,done:false});save();render();document.getElementById("ni").focus()}
 function rename(){var l=cur(),i=document.getElementById("rn");if(l&&i&&i.value.trim())l.name=i.value.trim();editing=false;save();render()}
+var dg=null;
+document.addEventListener("pointerdown",function(e){var h=e.target.closest&&e.target.closest(".dg");if(!h)return;var li=h.closest("li");if(!li)return;dg={el:li,id:li.dataset.id,y0:e.clientY,to:null,moved:false};li.classList.add("drag");document.body.classList.add("dragging");try{h.setPointerCapture(e.pointerId)}catch(x){}e.preventDefault()});
+document.addEventListener("pointermove",function(e){if(!dg)return;dg.moved=true;dg.el.style.transform="translateY("+(e.clientY-dg.y0)+"px)";var lis=[].slice.call(dg.el.parentNode.children).filter(function(c){return c!==dg.el&&c.tagName==="LI"});lis.forEach(function(c){c.classList.remove("ov","ovb")});dg.to=null;for(var k=0;k<lis.length;k++){var r=lis[k].getBoundingClientRect();if(e.clientY<r.top+r.height/2){dg.to=lis[k];break}}if(dg.to)dg.to.classList.add("ov");else if(lis.length)lis[lis.length-1].classList.add("ovb")});
+function endDrag(){if(!dg)return;var d=dg;dg=null;document.body.classList.remove("dragging");var l=cur();if(l&&d.moved){var it=l.items.find(function(x){return x.id===d.id});if(it){l.items.splice(l.items.indexOf(it),1);var ti=d.to?l.items.findIndex(function(x){return x.id===d.to.dataset.id}):-1;l.items.splice(ti<0?l.items.length:ti,0,it);save()}}render()}
+document.addEventListener("pointerup",endDrag);
+document.addEventListener("pointercancel",endDrag);
 document.getElementById("al").onclick=addList;
 document.getElementById("nl").onkeydown=function(e){if(e.key==="Enter")addList()};
 document.addEventListener("click",function(e){
