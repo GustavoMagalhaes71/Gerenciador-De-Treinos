@@ -38,9 +38,9 @@ li{flex-wrap:wrap}
 .pr .row{margin-top:6px}
 .pr input{width:0;padding:9px;font-size:15px}
 .pr .row button{padding:9px 16px}
-.mn{flex-basis:100%;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;padding:0 0 4px}
-.mn .opt{background:transparent;color:var(--tx);border:1px solid var(--bd);padding:8px 12px;font-size:14px}
-.mn .del{background:transparent;color:#e03131;border:1px solid var(--bd);padding:8px 12px;font-size:14px}
+.mn{flex-basis:100%;min-width:0;display:flex;gap:6px;padding:0 0 4px}
+.mn .opt{flex:1 1 0;min-width:0;white-space:nowrap;background:transparent;color:var(--tx);border:1px solid var(--bd);padding:9px 4px;font-size:13px}
+.mn .del{flex:1 1 0;min-width:0;white-space:nowrap;background:transparent;color:#e03131;border:1px solid var(--bd);padding:9px 4px;font-size:13px}
 .dg{flex:none;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;color:var(--mu);font-size:18px;line-height:1;padding:6px 2px}
 li{position:relative}
 li.drag{z-index:5;background:var(--card);box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:grabbing}
@@ -81,7 +81,7 @@ function render(){
   var d=l.items.filter(function(i){return i.done}).length;
   v.innerHTML='<div class="card"><div class="hd">'+(editing?'<input id="rn" value="'+esc(l.name)+'" maxlength="40"><button id="rok" style="margin-left:8px">OK</button>':'<h2>'+esc(l.name)+'</h2><span class="pg">'+d+'/'+l.items.length+' feitos</span>')+'</div>'
    +'<div class="row"><input id="ni" placeholder="Adicionar exercício (ex: Remada 4x10)" maxlength="80"><button id="ai">+</button></div>'
-   +'<ul>'+(l.items.length?l.items.map(function(i){return '<li data-id="'+i.id+'" class="'+(i.done?'done':'')+'"><span class="dg" aria-label="Arrastar para reordenar" title="Arrastar para reordenar">⠿</span><button class="ck" data-ck="'+i.id+'" aria-label="Concluir">'+(i.done?'✓':'')+'</button><span class="t">'+esc(i.text)+sum(i)+'</span><button class="x" data-mn="'+i.id+'" aria-label="Mais opções">⋯</button>'+(menuId===i.id?'<div class="mn"><button class="opt" data-pg="'+i.id+'">📈 Progressão de carga</button><button class="opt" data-hs="'+i.id+'">📅 Histórico</button><button class="del" data-rm="'+i.id+'">🗑 Excluir exercício</button></div>':'')+(openId===i.id?panel(i):'')+(histId===i.id?histPanel(i):'')+'</li>'}).join(""):'<div class="em">Nenhum exercício ainda.</div>')+'</ul>'
+   +'<ul>'+(l.items.length?l.items.map(function(i){return '<li data-id="'+i.id+'" class="'+(i.done?'done':'')+'"><span class="dg" aria-label="Arrastar para reordenar" title="Arrastar para reordenar">⠿</span><button class="ck" data-ck="'+i.id+'" aria-label="Concluir">'+(i.done?'✓':'')+'</button><span class="t">'+esc(i.text)+sum(i)+'</span><button class="x" data-mn="'+i.id+'" aria-label="Mais opções">⋯</button>'+(menuId===i.id?'<div class="mn"><button class="opt" data-pg="'+i.id+'">📈 Progressão</button><button class="opt" data-hs="'+i.id+'">📅 Histórico</button><button class="del" data-rm="'+i.id+'">🗑 Excluir</button></div>':'')+(openId===i.id?panel(i):'')+(histId===i.id?histPanel(i):'')+'</li>'}).join(""):'<div class="em">Nenhum exercício ainda.</div>')+'</ul>'
    +'<div class="row" style="margin-top:10px;justify-content:space-between"><button class="g" id="rs">Desmarcar todos</button><button class="g" id="rnb">Renomear</button><button class="g" id="dl">Excluir treino</button></div></div>';
 }
 function addList(){var i=document.getElementById("nl"),n=i.value.trim();if(!n)return;var l={id:uid(),name:n,items:[]};S.lists.push(l);S.active=l.id;i.value="";save();render()}
