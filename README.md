@@ -4,8 +4,6 @@ App web simples para organizar treinos de academia: monte listas por treino, mar
 
 🔗 **Acesse:** https://gerentetreino.netlify.app/
 
-![Tela do app]([nome-do-print].png)
-
 ## Funcionalidades
 
 - Listas de treino por dia ou grupo muscular (ex.: Costas, Peito)
