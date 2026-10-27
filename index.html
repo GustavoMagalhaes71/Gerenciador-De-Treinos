@@ -38,7 +38,8 @@ li{flex-wrap:wrap}
 .pr .row{margin-top:6px}
 .pr input{padding:9px;font-size:15px}
 .pr .row button{padding:9px 16px}
-.mn{flex-basis:100%;display:flex;justify-content:flex-end;padding:0 0 4px}
+.mn{flex-basis:100%;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;padding:0 0 4px}
+.mn .opt{background:transparent;color:var(--tx);border:1px solid var(--bd);padding:8px 12px;font-size:14px}
 .mn .del{background:transparent;color:#e03131;border:1px solid var(--bd);padding:8px 12px;font-size:14px}
 .em{color:var(--mu);text-align:center;padding:28px 8px}
 </style>
@@ -57,7 +58,7 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function cur(){return S.lists.find(function(l){return l.id===S.active})}
-function sum(i){return i.sets&&i.sets.length?'<small class="sm">'+i.sets.map(function(s){return esc(s.kg)}).join(" → ")+' kg</small>':''}
+function sum(i){return i.sets&&i.sets.length?'<small class="sm">'+i.sets.map(function(s){return esc(s.kg)+" kg"+(s.reps?" - "+esc(s.reps)+" rep":"")}).join(" | ")+'</small>':''}
 function panel(i){var la=(i.sets||[]).slice(-1)[0]||{kg:"",reps:""};return '<div class="pr">'+(i.sets||[]).map(function(x,n){return '<div class="sr"><span>Série '+(n+1)+' · <b>'+esc(x.kg)+' kg</b>'+(x.reps?' × '+esc(x.reps)+' reps':'')+'</span><button class="x" data-rs="'+i.id+':'+n+'" aria-label="Remover série">×</button></div>'}).join("")+'<div class="row"><input id="kg" type="number" inputmode="decimal" step="0.5" min="0" placeholder="Carga (kg)" value="'+esc(la.kg)+'"><input id="rp" type="number" inputmode="numeric" min="0" placeholder="Reps" value="'+esc(la.reps)+'"><button id="as" data-as="'+i.id+'">+</button></div></div>'}
 function addSet(id){var l=cur(),it=l&&l.items.find(function(x){return x.id===id}),k=document.getElementById("kg"),r=document.getElementById("rp");if(!it||!k||!k.value)return;(it.sets=it.sets||[]).push({kg:k.value,reps:r?r.value:""});save();render();var n=document.getElementById("kg");if(n)n.focus()}
 function render(){
@@ -68,7 +69,7 @@ function render(){
   var d=l.items.filter(function(i){return i.done}).length;
   v.innerHTML='<div class="card"><div class="hd">'+(editing?'<input id="rn" value="'+esc(l.name)+'" maxlength="40"><button id="rok" style="margin-left:8px">OK</button>':'<h2>'+esc(l.name)+'</h2><span class="pg">'+d+'/'+l.items.length+' feitos</span>')+'</div>'
    +'<div class="row"><input id="ni" placeholder="Adicionar exercício (ex: Remada 4x10)" maxlength="80"><button id="ai">+</button></div>'
-   +'<ul>'+(l.items.length?l.items.map(function(i){return '<li class="'+(i.done?'done':'')+'"><button class="ck" data-ck="'+i.id+'" aria-label="Concluir">'+(i.done?'✓':'')+'</button><span class="t">'+esc(i.text)+sum(i)+'</span><button class="x" data-pg="'+i.id+'" aria-label="Progressão de carga" title="Progressão de carga">📈</button><button class="x" data-mn="'+i.id+'" aria-label="Mais opções">⋯</button>'+(menuId===i.id?'<div class="mn"><button class="del" data-rm="'+i.id+'">🗑 Excluir exercício</button></div>':'')+(openId===i.id?panel(i):'')+'</li>'}).join(""):'<div class="em">Nenhum exercício ainda.</div>')+'</ul>'
+   +'<ul>'+(l.items.length?l.items.map(function(i){return '<li class="'+(i.done?'done':'')+'"><button class="ck" data-ck="'+i.id+'" aria-label="Concluir">'+(i.done?'✓':'')+'</button><span class="t">'+esc(i.text)+sum(i)+'</span><button class="x" data-mn="'+i.id+'" aria-label="Mais opções">⋯</button>'+(menuId===i.id?'<div class="mn"><button class="opt" data-pg="'+i.id+'">📈 Progressão de carga</button><button class="del" data-rm="'+i.id+'">🗑 Excluir exercício</button></div>':'')+(openId===i.id?panel(i):'')+'</li>'}).join(""):'<div class="em">Nenhum exercício ainda.</div>')+'</ul>'
    +'<div class="row" style="margin-top:10px;justify-content:space-between"><button class="g" id="rs">Desmarcar todos</button><button class="g" id="rnb">Renomear</button><button class="g" id="dl">Excluir treino</button></div></div>';
 }
 function addList(){var i=document.getElementById("nl"),n=i.value.trim();if(!n)return;var l={id:uid(),name:n,items:[]};S.lists.push(l);S.active=l.id;i.value="";save();render()}
@@ -85,7 +86,7 @@ document.addEventListener("click",function(e){
   else if(b.id==="rs"&&l){l.items.forEach(function(x){x.done=false})}
   else if(b.id==="rnb"&&l){editing=true;render();var r=document.getElementById("rn");if(r){r.focus();r.select()}return}
   else if(b.id==="rok"&&l){return rename()}
-  else if(b.dataset.mn&&l){menuId=menuId===b.dataset.mn?null:b.dataset.mn}
+  else if(b.dataset.mn&&l){if(openId===b.dataset.mn){openId=null;menuId=null}else{menuId=menuId===b.dataset.mn?null:b.dataset.mn}}
   else if(b.dataset.pg&&l){openId=openId===b.dataset.pg?null:b.dataset.pg}
   else if(b.dataset.rs&&l){var q=b.dataset.rs.split(":"),it2=l.items.find(function(x){return x.id===q[0]});if(it2&&it2.sets)it2.sets.splice(+q[1],1)}
   else if(b.dataset.as&&l){return addSet(b.dataset.as)}
