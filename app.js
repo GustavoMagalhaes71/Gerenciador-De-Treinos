@@ -20,7 +20,15 @@ function renderHs(){
   o.innerHTML='<div class="hsw"><button class="bk" data-bk="1">← Voltar</button><h2 class="hst">'+esc(it.text)+'</h2><p class="hsb">'+esc(l.name)+' · Histórico de cargas</p>'+(cards.length?cards.join(""):'<div class="em">Sem histórico ainda. As séries da semana atual vão para cá quando a semana virar.</div>')+'</div>'
 }
 function sum(i){return i.sets&&i.sets.length?'<small class="sm">'+i.sets.map(function(s,n){return "S"+(n+1)+": "+esc(s.kg)+" kg"+(s.reps?" - "+esc(s.reps)+" rep":"")}).join(" | ")+'</small>':''}
-function panel(i){var la=(i.sets||[]).slice(-1)[0]||{kg:"",reps:""};return '<div class="pr">'+(i.sets||[]).map(function(x,n){return '<div class="sr"><span>Série '+(n+1)+' · <b>'+esc(x.kg)+' kg</b>'+(x.reps?' × '+esc(x.reps)+' reps':'')+'</span><button class="x" data-rs="'+i.id+':'+n+'" aria-label="Remover série">×</button></div>'}).join("")+'<div class="row"><input id="kg" type="number" inputmode="decimal" step="0.5" min="0" placeholder="Carga (kg)" value="'+esc(la.kg)+'"><input id="rp" type="number" inputmode="numeric" min="0" placeholder="Reps" value="'+esc(la.reps)+'"><button id="as" data-as="'+i.id+'">+</button></div></div>'}
+function lastHist(i){return (i.hist||[]).slice().sort(function(a,b){return a.w<b.w?-1:1}).pop()}
+function cpBtn(i){var h=lastHist(i);return h&&h.sets&&h.sets.length?'<button class="g cpb" data-cp="'+i.id+'">Copiar da última semana ('+wlabel(h.w)+')</button>':''}
+function copyLast(id){
+  var l=cur(),it=l&&l.items.find(function(x){return x.id===id}),h=it&&lastHist(it);
+  if(!h||!h.sets||!h.sets.length)return;
+  if(it.sets&&it.sets.length&&!confirm("Substituir as séries atuais pelas da semana "+wlabel(h.w)+"?"))return;
+  it.sets=h.sets.map(function(s){return {kg:s.kg,reps:s.reps}});save()
+}
+function panel(i){var la=(i.sets||[]).slice(-1)[0]||{kg:"",reps:""};return '<div class="pr">'+cpBtn(i)+(i.sets||[]).map(function(x,n){return '<div class="sr"><span>Série '+(n+1)+' · <b>'+esc(x.kg)+' kg</b>'+(x.reps?' × '+esc(x.reps)+' reps':'')+'</span><button class="x" data-rs="'+i.id+':'+n+'" aria-label="Remover série">×</button></div>'}).join("")+'<div class="row"><input id="kg" type="number" inputmode="decimal" step="0.5" min="0" placeholder="Carga (kg)" value="'+esc(la.kg)+'"><input id="rp" type="number" inputmode="numeric" min="0" placeholder="Reps" value="'+esc(la.reps)+'"><button id="as" data-as="'+i.id+'">+</button></div></div>'}
 function addSet(id){var l=cur(),it=l&&l.items.find(function(x){return x.id===id}),k=document.getElementById("kg"),r=document.getElementById("rp");if(!it||!k||!k.value)return;(it.sets=it.sets||[]).push({kg:k.value,reps:r?r.value:""});save();render();var n=document.getElementById("kg");if(n)n.focus()}
 function render(){render0();renderHs()}
 function render0(){
@@ -62,11 +70,60 @@ document.addEventListener("click",function(e){
   else if(b.dataset.pg&&l){histId=null;openId=openId===b.dataset.pg?null:b.dataset.pg}
   else if(b.dataset.rs&&l){var q=b.dataset.rs.split(":"),it2=l.items.find(function(x){return x.id===q[0]});if(it2&&it2.sets)it2.sets.splice(+q[1],1)}
   else if(b.dataset.as&&l){return addSet(b.dataset.as)}
+  else if(b.dataset.cp&&l){copyLast(b.dataset.cp)}
   else if(b.id==="dl"&&l){if(!confirm("Excluir o treino "+l.name+"?"))return;S.lists=S.lists.filter(function(x){return x.id!==l.id});S.active=S.lists.length?S.lists[0].id:null;editing=false}
   else return;
   save();render();
 });
 document.addEventListener("keydown",function(e){if(e.key==="Enter"&&e.target.id==="ni")addItem();if(e.key==="Enter"&&e.target.id==="rn")rename();if(e.key==="Enter"&&(e.target.id==="kg"||e.target.id==="rp"))addSet(openId);if(e.key==="Escape"&&e.target.id==="rn"){editing=false;render()}});
+function fdate(iso){var d=new Date(iso);return pad(d.getDate())+"/"+pad(d.getMonth()+1)+"/"+d.getFullYear()}
+function bmsg(t){var m=document.getElementById("bkm");if(m)m.textContent=t}
+function bstat(){bmsg(S.lastBackup?"Último backup: "+fdate(S.lastBackup):"Nenhum backup exportado ainda.")}
+function exportBackup(){
+  var now=new Date(),nome="treinos-backup-"+now.getFullYear()+"-"+pad(now.getMonth()+1)+"-"+pad(now.getDate())+".json";
+  S.lastBackup=now.toISOString();save();
+  var pacote={app:"gerenciador-de-treinos",versao:1,exportadoEm:S.lastBackup,dados:S};
+  var blob=new Blob([JSON.stringify(pacote,null,2)],{type:"application/json"}),a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);a.download=nome;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(a.href)},1000);
+  bmsg("Backup exportado: "+nome)
+}
+function cleanData(d){
+  if(!d||!Array.isArray(d.lists))return null;
+  var lists=d.lists.filter(function(l){return l&&typeof l==="object"}).map(function(l){
+    l.id=l.id||uid();l.name=String(l.name||"Treino");
+    l.items=(Array.isArray(l.items)?l.items:[]).filter(function(i){return i&&typeof i==="object"}).map(function(i){
+      i.id=i.id||uid();i.text=String(i.text||"");i.done=!!i.done;
+      i.sets=Array.isArray(i.sets)?i.sets:[];if(i.hist&&!Array.isArray(i.hist))i.hist=[];
+      return i});
+    return l});
+  return {lists:lists,week:typeof d.week==="string"?d.week:null,lastBackup:d.lastBackup||null,active:d.active}
+}
+function importBackup(file){
+  var r=new FileReader();
+  r.onload=function(){
+    var obj;try{obj=JSON.parse(r.result)}catch(e){bmsg("Arquivo inválido: não é um backup do app.");return}
+    var d=cleanData(obj&&obj.dados?obj.dados:obj);
+    if(!d){bmsg("Arquivo inválido: não é um backup do app.");return}
+    var nx=d.lists.reduce(function(a,l){return a+l.items.length},0);
+    if(!confirm("Importar "+d.lists.length+" treino(s) e "+nx+" exercício(s)? Isso substitui os dados atuais deste navegador."))return;
+    try{localStorage.setItem(KEY+"-anterior",localStorage.getItem(KEY)||"")}catch(e){}
+    S.lists=d.lists;S.week=d.week||undefined;S.lastBackup=d.lastBackup||undefined;
+    S.active=S.lists.some(function(l){return l.id===d.active})?d.active:(S.lists.length?S.lists[0].id:null);
+    editing=false;openId=null;menuId=null;histId=null;
+    rollWeek();save();render();
+    bmsg("Backup importado: "+d.lists.length+" treino(s), "+nx+" exercício(s).")
+  };
+  r.readAsText(file)
+}
+function initBackup(){
+  var x=document.getElementById("bkx"),i=document.getElementById("bki"),f=document.getElementById("bkf");
+  if(!x||!i||!f)return;
+  x.onclick=exportBackup;i.onclick=function(){f.click()};
+  f.onchange=function(){if(f.files[0])importBackup(f.files[0]);f.value=""};
+  bstat()
+}
 if(!cur()&&S.lists.length)S.active=S.lists[0].id;
 rollWeek();
 render();
+initBackup();

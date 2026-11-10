@@ -52,4 +52,8 @@ li.ovb{box-shadow:0 2px 0 var(--ac)}
 .hcw small{color:var(--mu);font-weight:500;font-size:13px}
 .hr{display:grid;grid-template-columns:64px 1fr 1fr;padding:6px 0;border-top:1px solid var(--bd);font-size:16px}
 .hr .hn{color:var(--mu)}
+.bkp{margin-top:24px;padding-top:12px;border-top:1px solid var(--bd);text-align:center}
+.bkp .row{justify-content:center}
+.bkp .pg{margin:6px 0 0;font-size:13px}
+.cpb{border:1px solid var(--bd);margin-bottom:6px;padding:8px 12px;font-size:13px}
 .em{color:var(--mu);text-align:center;padding:28px 8px}
