@@ -31,15 +31,26 @@ li{flex-wrap:wrap}
 .pr .row{margin-top:6px}
 .pr input{width:0;padding:9px;font-size:15px}
 .pr .row button{padding:9px 16px}
-.mn{flex-basis:100%;min-width:0;display:flex;gap:6px;padding:0 0 4px}
-.mn .opt{flex:1 1 0;min-width:0;white-space:nowrap;background:transparent;color:var(--tx);border:1px solid var(--bd);padding:9px 4px;font-size:13px}
-.mn .del{flex:1 1 0;min-width:0;white-space:nowrap;background:transparent;color:#e03131;border:1px solid var(--bd);padding:9px 4px;font-size:13px}
+.mn{flex-basis:100%;min-width:0;display:flex;flex-wrap:wrap;gap:6px;padding:0 0 4px}
+.mn .opt{flex:1 1 calc(50% - 3px);min-width:0;white-space:nowrap;background:transparent;color:var(--tx);border:1px solid var(--bd);padding:9px 4px;font-size:13px}
+.mn .del{flex:1 1 calc(50% - 3px);min-width:0;white-space:nowrap;background:transparent;color:#e03131;border:1px solid var(--bd);padding:9px 4px;font-size:13px}
 .dg{flex:none;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;color:var(--mu);font-size:18px;line-height:1;padding:6px 2px}
 li{position:relative}
 li.drag{z-index:5;background:var(--card);box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:grabbing}
 li.ov{box-shadow:0 -2px 0 var(--ac)}
 li.ovb{box-shadow:0 2px 0 var(--ac)}
 .dragging,.dragging *{user-select:none;-webkit-user-select:none}
+.gh{display:flex;align-items:center;gap:6px;border-top:0;padding:18px 4px 6px}
+.gt{flex:1;min-width:0;font-size:16px;font-weight:700;word-break:break-word;text-decoration:underline;text-decoration-color:var(--ac);text-decoration-thickness:2px;text-underline-offset:5px}
+.gp{flex:none;width:40px;height:40px;padding:0;border-radius:999px;background:transparent;color:var(--ac);border:1px solid var(--bd);font-size:22px;line-height:1}
+.gx{flex:none;min-width:40px;min-height:40px}
+.afl{display:block;border-top:0;padding:2px 0 10px}
+.addb{width:100%}
+.addm{display:flex;gap:6px;margin-top:8px}
+.addm .opt{flex:1 1 0;min-width:0;white-space:nowrap;background:transparent;color:var(--tx);border:1px solid var(--bd);padding:11px 4px;font-size:14px}
+select{display:block;width:100%;min-width:0;padding:12px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx);font-size:16px}
+.gh+li{border-top:0}
+ul>.gh:first-child{padding-top:4px}
 .hw{padding:6px 0;font-size:15px}
 #hs{position:fixed;inset:0;z-index:30;background:var(--bg);overflow-y:auto;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
 #hs[hidden]{display:none}
