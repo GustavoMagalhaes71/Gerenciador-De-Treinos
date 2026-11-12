@@ -49,7 +49,7 @@ function listHtml(l){
   if(!l.items.length&&!gs.length)return '<div class="em">Nenhum exercício ainda.</div>';
   var h=l.items.filter(function(i){return !gk(i)}).map(liHtml).join("");
   gs.forEach(function(g){var k=g.toLowerCase();
-    h+='<li class="gh"><span class="gt">'+esc(g)+'</span><button class="gp" data-ag="'+esc(k)+'" aria-label="Adicionar exercício em '+esc(g)+'">+</button><button class="x gx" data-gm="'+esc(k)+'" aria-label="Opções do grupo">⋯</button>'+(gmId===k?'<div class="mn"><button class="opt" data-gr="'+esc(k)+'">✏️ Renomear</button><button class="del" data-gd="'+esc(k)+'">🗑 Excluir grupo</button></div>':'')+'</li>';
+    h+='<li class="gh"><span class="gt">'+esc(g)+'</span><button class="x gx" data-gm="'+esc(k)+'" aria-label="Opções do grupo">⋯</button>'+(gmId===k?'<div class="mn"><button class="opt" data-gr="'+esc(k)+'">✏️ Renomear</button><button class="del" data-gd="'+esc(k)+'">🗑 Excluir grupo</button></div>':'')+'</li>';
     if(addMode==="eg"&&addAt===k)h+='<li class="afl">'+exForm(l,false)+'</li>';
     h+=l.items.filter(function(i){return gk(i)===k}).map(liHtml).join("")});
   return h
@@ -86,7 +86,6 @@ document.addEventListener("click",function(e){
   else if(b.id==="ai"){return addItem()}
   else if(b.id==="plus"){addMenu=!addMenu;render();return}
   else if(b.dataset.am){addMenu=false;addMode=b.dataset.am;addAt=addMode==="e"?lastG.toLowerCase():"";render();var f1=document.getElementById(addMode==="g"?"ngn":"ni");if(f1)f1.focus();return}
-  else if(b.dataset.ag){addMode="eg";addAt=b.dataset.ag;render();var f2=document.getElementById("ni");if(f2){f2.focus();if(f2.scrollIntoView)f2.scrollIntoView({block:"center"})}return}
   else if(b.dataset.ac){addMode=null;render();return}
   else if(b.id==="gok"){return addGroup()}
   else if(b.dataset.gm){gmId=gmId===b.dataset.gm?null:b.dataset.gm;render();return}

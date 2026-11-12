@@ -42,7 +42,6 @@ li.ovb{box-shadow:0 2px 0 var(--ac)}
 .dragging,.dragging *{user-select:none;-webkit-user-select:none}
 .gh{display:flex;align-items:center;gap:6px;border-top:0;padding:18px 4px 6px}
 .gt{flex:1;min-width:0;font-size:16px;font-weight:700;word-break:break-word;text-decoration:underline;text-decoration-color:var(--ac);text-decoration-thickness:2px;text-underline-offset:5px}
-.gp{flex:none;width:40px;height:40px;padding:0;border-radius:999px;background:transparent;color:var(--ac);border:1px solid var(--bd);font-size:22px;line-height:1}
 .gx{flex:none;min-width:40px;min-height:40px}
 .afl{display:block;border-top:0;padding:2px 0 10px}
 .addb{width:100%}
