@@ -61,8 +61,8 @@ function cardHtml(l){
 function homeHtml(){
   var h=addNew
     ?'<div class="row"><input id="nl" placeholder="Nome do treino (ex: A | Push)" maxlength="40" autocomplete="off"><button id="al">Criar</button><button class="g" data-nc="1" aria-label="Cancelar">✕</button></div>'
-    :'<div class="row"><button id="nt" class="addb">Cadastrar treino</button></div>';
-  if(!S.lists.length)return h+'<div class="em">Nenhum treino ainda. Toque em “Cadastrar treino” para criar o primeiro, como “A | Push” ou “Costas”.</div>';
+    :'<div class="row"><button id="nt" class="addb">Cadastrar Treino</button></div>';
+  if(!S.lists.length)return h+'<div class="em">Nenhum treino ainda. Toque em “Cadastrar Treino” para criar o primeiro, como “A | Push” ou “Costas”.</div>';
   return h+'<div class="cards">'+S.lists.map(cardHtml).join("")+'</div>'
 }
 function render0(){
