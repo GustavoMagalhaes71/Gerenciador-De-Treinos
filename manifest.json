@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Gerenciador de Treinos",
-  "short_name": "Treinos",
+  "name": "Gerencie Treinos",
+  "short_name": "Gerencie Treinos",
   "description": "Gerencie seus treinos da academia, cargas e descanso entre séries.",
   "lang": "pt-BR",
   "start_url": "./",
