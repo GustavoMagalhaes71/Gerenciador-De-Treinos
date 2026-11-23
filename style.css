@@ -74,3 +74,9 @@ ul>.gh:first-child{padding-top:4px}
 .th button{flex:1;background:transparent;color:var(--tx);border:1px solid var(--bd);padding:10px 4px;font-size:14px}
 .th button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
 .gear{flex:none;font-size:22px;padding:6px 10px}
+.bkc{margin-top:12px}
+.bkc .row{margin-top:10px}
+.bkc .row button{flex:1}
+.bkc .pg{margin:10px 0 0}
+.bkc .hd{margin-bottom:6px}
+.alt{background:transparent;color:var(--tx);border:1px solid var(--bd)}

@@ -3,7 +3,7 @@ var inSet=false;
 function getTheme(){try{return localStorage.getItem(KEY+"-tema")||"auto"}catch(e){return "auto"}}
 function applyTheme(t){var r=document.documentElement;if(t==="light"||t==="dark")r.setAttribute("data-theme",t);else r.removeAttribute("data-theme")}
 function setTheme(t){try{localStorage.setItem(KEY+"-tema",t)}catch(e){}applyTheme(t)}
-function setHtml(){var t=getTheme();function o(v,n){return '<button data-th="'+v+'" class="'+(t===v?'on':'')+'">'+n+'</button>'}return '<button class="bk" data-sb="1">← Treinos</button><div class="card"><div class="hd"><h2>Configurações</h2></div><p class="pg">Tema</p><div class="th">'+o("auto","Automático")+o("light","Claro")+o("dark","Escuro")+'</div></div>'}
+function setHtml(){var t=getTheme();function o(v,n){return '<button data-th="'+v+'" class="'+(t===v?'on':'')+'">'+n+'</button>'}return '<button class="bk" data-sb="1">← Treinos</button><div class="card"><div class="hd"><h2>Configurações</h2></div><p class="pg">Tema</p><div class="th">'+o("auto","Automático")+o("light","Claro")+o("dark","Escuro")+'</div></div><div class="card bkc"><div class="hd"><h2>Backup</h2></div><p class="pg">Salve seus treinos e o histórico de cargas em um arquivo, ou restaure a partir de um.</p><div class="row"><button data-bx="1">Exportar</button><button class="alt" data-bi="1">Importar</button></div><input id="bkf" type="file" accept=".json,application/json" hidden><p class="pg" id="bkm">'+(S.lastBackup?"Último backup: "+fdate(S.lastBackup):"Nenhum backup exportado ainda.")+'</p></div>'}
 try{var r=localStorage.getItem(KEY);if(r){var p=JSON.parse(r);if(p&&Array.isArray(p.lists))S=p}}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
@@ -95,7 +95,7 @@ document.addEventListener("pointercancel",endDrag);
 document.addEventListener("keydown",function(e){if(e.key==="Escape"&&histId){histId=null;render()}});
 document.addEventListener("visibilitychange",function(){if(!document.hidden&&rollWeek())render()});
 window.addEventListener("popstate",function(){inSet=false;inList=false;editing=false;menuId=null;gmId=null;addMode=null;addMenu=false;addAt="";openId=null;histId=null;render()});
-document.addEventListener("change",function(e){if(e.target&&e.target.id==="ngs")addAt=e.target.value.toLowerCase()});
+document.addEventListener("change",function(e){var t=e.target;if(t&&t.id==="ngs")addAt=t.value.toLowerCase();if(t&&t.id==="bkf"){if(t.files[0])importBackup(t.files[0]);t.value=""}});
 document.addEventListener("click",function(e){
   var b=e.target.closest("button");if(!b){if(menuId||gmId||addMenu){menuId=null;gmId=null;addMenu=false;render()}return}var l=cur();if(!b.dataset.mn)menuId=null;if(!b.dataset.gm)gmId=null;if(b.id!=="plus")addMenu=false;
   if(b.dataset.open){S.active=b.dataset.open;inList=true;editing=false;lastG="";addMode=null;addMenu=false;addAt="";openId=null;histId=null;try{history.pushState({tr:1},"")}catch(x){}}
@@ -125,6 +125,8 @@ document.addEventListener("click",function(e){
   else if(b.dataset.as&&l){return addSet(b.dataset.as)}
   else if(b.dataset.cp&&l){copyLast(b.dataset.cp)}
   else if(b.id==="dl"&&l){if(!confirm("Excluir o treino "+l.name+"?"))return;S.lists=S.lists.filter(function(x){return x.id!==l.id});S.active=S.lists.length?S.lists[0].id:null;editing=false;inList=false;if(history.state&&history.state.tr){try{history.back()}catch(x){}}}
+  else if(b.dataset.bx){exportBackup();return}
+  else if(b.dataset.bi){var bf=document.getElementById("bkf");if(bf)bf.click();return}
   else if(b.dataset.set){inSet=true;addNew=false;try{history.pushState({tr:1},"")}catch(x){}}
   else if(b.dataset.sb){if(history.state&&history.state.tr){history.back();return}inSet=false}
   else if(b.dataset.th){setTheme(b.dataset.th)}
@@ -134,7 +136,6 @@ document.addEventListener("click",function(e){
 document.addEventListener("keydown",function(e){if(e.key==="Enter"&&e.target.id==="nl")addList();if(e.key==="Escape"&&e.target.id==="nl"){addNew=false;render()}if(e.key==="Enter"&&e.target.id==="ngn")addGroup();if(e.key==="Escape"&&(e.target.id==="ngn"||e.target.id==="ni")){addMode=null;render()}if(e.key==="Enter"&&e.target.id==="ni")addItem();if(e.key==="Enter"&&e.target.id==="rn")rename();if(e.key==="Enter"&&(e.target.id==="kg"||e.target.id==="rp"))addSet(openId);if(e.key==="Escape"&&e.target.id==="rn"){editing=false;render()}});
 function fdate(iso){var d=new Date(iso);return pad(d.getDate())+"/"+pad(d.getMonth()+1)+"/"+d.getFullYear()}
 function bmsg(t){var m=document.getElementById("bkm");if(m)m.textContent=t}
-function bstat(){bmsg(S.lastBackup?"Último backup: "+fdate(S.lastBackup):"Nenhum backup exportado ainda.")}
 function exportBackup(){
   var now=new Date(),nome="treinos-backup-"+now.getFullYear()+"-"+pad(now.getMonth()+1)+"-"+pad(now.getDate())+".json";
   S.lastBackup=now.toISOString();save();
@@ -172,16 +173,8 @@ function importBackup(file){
   };
   r.readAsText(file)
 }
-function initBackup(){
-  var x=document.getElementById("bkx"),i=document.getElementById("bki"),f=document.getElementById("bkf");
-  if(!x||!i||!f)return;
-  x.onclick=exportBackup;i.onclick=function(){f.click()};
-  f.onchange=function(){if(f.files[0])importBackup(f.files[0]);f.value=""};
-  bstat()
-}
 if(!cur()&&S.lists.length)S.active=S.lists[0].id;
 try{history.replaceState(null,"")}catch(e){}
 applyTheme(getTheme());
 rollWeek();
 render();
-initBackup();
