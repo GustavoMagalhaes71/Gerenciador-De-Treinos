@@ -5,6 +5,7 @@ function applyTheme(t){var r=document.documentElement;if(t==="light"||t==="dark"
 function setTheme(t){try{localStorage.setItem(KEY+"-tema",t)}catch(e){}applyTheme(t)}
 function navHtml(){return '<button class="'+(inSet?'':'on')+'" data-tab="t">Treinos</button><button class="'+(inSet?'on':'')+'" data-tab="c">Configurações</button>'}
 function setHtml(){var t=getTheme();function o(v,n){return '<button data-th="'+v+'" class="'+(t===v?'on':'')+'">'+n+'</button>'}return '<h1 class="h pt">Configurações</h1><div class="card"><div class="h ct">Tema</div><p class="pg ps">Escolha como o app aparece</p><div class="th">'+o("auto","Automático")+o("light","Claro")+o("dark","Escuro")+'</div></div><div class="card bkc"><div class="h ct">Backup</div><p class="pg ps">Salve seus treinos e o histórico de cargas em um arquivo, ou restaure a partir de um.</p><div class="row"><button data-bx="1">Exportar</button><button class="alt" data-bi="1">Importar</button></div><input id="bkf" type="file" accept=".json,application/json" hidden><p class="pg" id="bkm">'+(S.lastBackup?"Último backup: "+fdate(S.lastBackup):"Nenhum backup exportado ainda.")+'</p></div>'}
+try{var r=localStorage.getItem(KEY);if(r){var p=JSON.parse(r);if(p&&Array.isArray(p.lists))S=p}}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
