@@ -3,7 +3,8 @@ var inSet=false;
 function getTheme(){try{return localStorage.getItem(KEY+"-tema")||"auto"}catch(e){return "auto"}}
 function applyTheme(t){var r=document.documentElement;if(t==="light"||t==="dark")r.setAttribute("data-theme",t);else r.removeAttribute("data-theme")}
 function setTheme(t){try{localStorage.setItem(KEY+"-tema",t)}catch(e){}applyTheme(t)}
-function setHtml(){var t=getTheme();function o(v,n){return '<button data-th="'+v+'" class="'+(t===v?'on':'')+'">'+n+'</button>'}return '<button class="bk" data-sb="1">← Treinos</button><div class="card"><div class="hd"><h2>Configurações</h2></div><p class="pg">Tema</p><div class="th">'+o("auto","Automático")+o("light","Claro")+o("dark","Escuro")+'</div></div><div class="card bkc"><div class="hd"><h2>Backup</h2></div><p class="pg">Salve seus treinos e o histórico de cargas em um arquivo, ou restaure a partir de um.</p><div class="row"><button data-bx="1">Exportar</button><button class="alt" data-bi="1">Importar</button></div><input id="bkf" type="file" accept=".json,application/json" hidden><p class="pg" id="bkm">'+(S.lastBackup?"Último backup: "+fdate(S.lastBackup):"Nenhum backup exportado ainda.")+'</p></div>'}
+function tabsHtml(){return '<button class="tab'+(inSet?'':' on')+'" data-tab="t">Treinos</button><button class="tab'+(inSet?' on':'')+'" data-tab="c">⚙ Configurações</button>'}
+function setHtml(){var t=getTheme();function o(v,n){return '<button data-th="'+v+'" class="'+(t===v?'on':'')+'">'+n+'</button>'}return '<div class="card"><div class="hd"><h2>Configurações</h2></div><p class="pg">Tema</p><div class="th">'+o("auto","Automático")+o("light","Claro")+o("dark","Escuro")+'</div></div><div class="card bkc"><div class="hd"><h2>Backup</h2></div><p class="pg">Salve seus treinos e o histórico de cargas em um arquivo, ou restaure a partir de um.</p><div class="row"><button data-bx="1">Exportar</button><button class="alt" data-bi="1">Importar</button></div><input id="bkf" type="file" accept=".json,application/json" hidden><p class="pg" id="bkm">'+(S.lastBackup?"Último backup: "+fdate(S.lastBackup):"Nenhum backup exportado ainda.")+'</p></div>'}
 try{var r=localStorage.getItem(KEY);if(r){var p=JSON.parse(r);if(p&&Array.isArray(p.lists))S=p}}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
@@ -66,16 +67,16 @@ function cardHtml(l){
 function homeHtml(){
   var h=addNew
     ?'<div class="row"><input id="nl" placeholder="Nome do treino (ex: A | Push)" maxlength="40" autocomplete="off"><button id="al">Criar</button><button class="g" data-nc="1" aria-label="Cancelar">✕</button></div>'
-    :'<div class="row"><button id="nt" class="addb">Cadastrar Treino</button><button class="g gear" data-set="1" aria-label="Configurações">⚙</button></div>';
+    :'<div class="row"><button id="nt" class="addb">Cadastrar Treino</button></div>';
   if(!S.lists.length)return h+'<div class="em">Nenhum treino ainda. Toque em “Cadastrar Treino” para criar o primeiro, como “A | Push” ou “Costas”.</div>';
   return h+'<div class="cards">'+S.lists.map(cardHtml).join("")+'</div>'
 }
 function render0(){
   var hm=document.getElementById("home"),v=document.getElementById("view"),tt=document.getElementById("ttl"),l=cur();
   if(inList&&!l)inList=false;
-  if(inSet){hm.hidden=true;v.hidden=false;tt.hidden=true;hm.innerHTML="";v.innerHTML=setHtml();return}
+  if(inSet){hm.hidden=true;v.hidden=false;tt.hidden=false;tt.innerHTML=tabsHtml();hm.innerHTML="";v.innerHTML=setHtml();return}
   hm.hidden=inList;v.hidden=!inList;tt.hidden=inList;
-  if(!inList){hm.innerHTML=homeHtml();v.innerHTML="";return}
+  if(!inList){tt.innerHTML=tabsHtml();hm.innerHTML=homeHtml();v.innerHTML="";return}
   var d=l.items.filter(function(i){return i.done}).length;
   v.innerHTML='<button class="bk" data-home="1">← Treinos</button><div class="card"><div class="hd">'+(editing?'<input id="rn" value="'+esc(l.name)+'" maxlength="40"><button id="rok" style="margin-left:8px">OK</button>':'<h2>'+esc(l.name)+'</h2><span class="pg">'+d+'/'+l.items.length+' feitos</span>')+'</div>'
    +topHtml(l)
@@ -127,8 +128,8 @@ document.addEventListener("click",function(e){
   else if(b.id==="dl"&&l){if(!confirm("Excluir o treino "+l.name+"?"))return;S.lists=S.lists.filter(function(x){return x.id!==l.id});S.active=S.lists.length?S.lists[0].id:null;editing=false;inList=false;if(history.state&&history.state.tr){try{history.back()}catch(x){}}}
   else if(b.dataset.bx){exportBackup();return}
   else if(b.dataset.bi){var bf=document.getElementById("bkf");if(bf)bf.click();return}
-  else if(b.dataset.set){inSet=true;addNew=false;try{history.pushState({tr:1},"")}catch(x){}}
-  else if(b.dataset.sb){if(history.state&&history.state.tr){history.back();return}inSet=false}
+  else if(b.dataset.tab==="c"){if(!inSet){inSet=true;addNew=false;try{history.pushState({tr:1},"")}catch(x){}}}
+  else if(b.dataset.tab==="t"){if(inSet){if(history.state&&history.state.tr){history.back();return}inSet=false}}
   else if(b.dataset.th){setTheme(b.dataset.th)}
   else return;
   save();render();
