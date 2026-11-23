@@ -4,7 +4,12 @@ function getTheme(){try{return localStorage.getItem(KEY+"-tema")||"auto"}catch(e
 function applyTheme(t){var r=document.documentElement;if(t==="light"||t==="dark")r.setAttribute("data-theme",t);else r.removeAttribute("data-theme")}
 function setTheme(t){try{localStorage.setItem(KEY+"-tema",t)}catch(e){}applyTheme(t)}
 function navHtml(){return '<button class="'+(inSet?'':'on')+'" data-tab="t">Treinos</button><button class="'+(inSet?'on':'')+'" data-tab="c">Configurações</button>'}
-function setHtml(){var t=getTheme();function o(v,n){return '<button data-th="'+v+'" class="'+(t===v?'on':'')+'">'+n+'</button>'}return '<h1 class="h pt">Configurações</h1><div class="card"><div class="h ct">Tema</div><p class="pg ps">Escolha como o app aparece</p><div class="th">'+o("auto","Automático")+o("light","Claro")+o("dark","Escuro")+'</div></div><div class="card bkc"><div class="h ct">Backup</div><p class="pg ps">Salve seus treinos e o histórico de cargas em um arquivo, ou restaure a partir de um.</p><div class="row"><button data-bx="1">Exportar</button><button class="alt" data-bi="1">Importar</button></div><input id="bkf" type="file" accept=".json,application/json" hidden><p class="pg" id="bkm">'+(S.lastBackup?"Último backup: "+fdate(S.lastBackup):"Nenhum backup exportado ainda.")+'</p></div>'}
+function ordHtml(){
+  var n=S.lists.length;
+  if(n<2)return '<div class="card"><div class="h ct">Ordem dos treinos</div><p class="pg ps">Cadastre pelo menos dois treinos para escolher a ordem.</p></div>';
+  return '<div class="card"><div class="h ct">Ordem dos treinos</div><p class="pg ps">O primeiro da lista é o treino principal na tela inicial. Quando você o conclui, o próximo assume.</p><ul class="ord">'+S.lists.map(function(l,i){return '<li class="oi"><span class="oz">'+(i+1)+'</span><span class="ot">'+esc(l.name)+(i===0?'<small>Principal</small>':'')+'</span><button class="x" data-mv="'+l.id+':-1" aria-label="Subir"'+(i===0?' disabled':'')+'>▲</button><button class="x" data-mv="'+l.id+':1" aria-label="Descer"'+(i===n-1?' disabled':'')+'>▼</button></li>'}).join("")+'</ul></div>'
+}
+function setHtml(){var t=getTheme();function o(v,n){return '<button data-th="'+v+'" class="'+(t===v?'on':'')+'">'+n+'</button>'}return '<h1 class="h pt">Configurações</h1><div class="card"><div class="h ct">Tema</div><p class="pg ps">Escolha como o app aparece</p><div class="th">'+o("auto","Automático")+o("light","Claro")+o("dark","Escuro")+'</div></div>'+ordHtml()+'<div class="card bkc"><div class="h ct">Backup</div><p class="pg ps">Salve seus treinos e o histórico de cargas em um arquivo, ou restaure a partir de um.</p><div class="row"><button data-bx="1">Exportar</button><button class="alt" data-bi="1">Importar</button></div><input id="bkf" type="file" accept=".json,application/json" hidden><p class="pg" id="bkm">'+(S.lastBackup?"Último backup: "+fdate(S.lastBackup):"Nenhum backup exportado ainda.")+'</p></div>'}
 try{var r=localStorage.getItem(KEY);if(r){var p=JSON.parse(r);if(p&&Array.isArray(p.lists))S=p}}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
@@ -68,11 +73,7 @@ var DW=["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"],DM=["j
 function todayLabel(){var d=new Date();return DW[d.getDay()]+", "+d.getDate()+" de "+DM[d.getMonth()]}
 function nfeitos(l){return l.items.filter(function(i){return i.done}).length}
 function barHtml(d,n){return '<span class="bar"><i style="width:'+(n?Math.round(d/n*100):0)+'%"></i></span>'}
-function nextList(){
-  var all=function(l){return l.items.length>0&&nfeitos(l)===l.items.length};
-  var a=S.lists.filter(function(l){return nfeitos(l)>0&&!all(l)});if(a.length)return a[0];
-  var b=S.lists.filter(function(l){return !all(l)});return b[0]||S.lists[0]
-}
+function nextList(){var all=function(l){return l.items.length>0&&nfeitos(l)===l.items.length};var b=S.lists.filter(function(l){return !all(l)});return b[0]||S.lists[0]}
 function featHtml(l){
   var d=nfeitos(l),n=l.items.length,gs=gsync(l);
   return '<div class="card ft"><div class="fl">Próximo treino</div><div class="fr"><span class="h ftn">'+esc(l.name)+'</span><span class="h ftp">'+d+'/'+n+'</span></div>'+(gs.length?'<div class="mu fg">'+esc(gs.join(" · "))+'</div>':'')+barHtml(d,n)+'<button class="btn bw" data-open="'+l.id+'">'+(d?'Continuar treino':'Iniciar treino')+'</button></div>'
@@ -148,6 +149,7 @@ document.addEventListener("click",function(e){
   else if(b.dataset.as&&l){return addSet(b.dataset.as)}
   else if(b.dataset.cp&&l){copyLast(b.dataset.cp)}
   else if(b.id==="dl"&&l){if(!confirm("Excluir o treino "+l.name+"?"))return;S.lists=S.lists.filter(function(x){return x.id!==l.id});S.active=S.lists.length?S.lists[0].id:null;editing=false;inList=false;if(history.state&&history.state.tr){try{history.back()}catch(x){}}}
+  else if(b.dataset.mv){var q2=b.dataset.mv.split(":"),i2=S.lists.findIndex(function(x){return x.id===q2[0]}),j2=i2+(+q2[1]);if(i2>=0&&j2>=0&&j2<S.lists.length){var t2=S.lists[i2];S.lists[i2]=S.lists[j2];S.lists[j2]=t2}}
   else if(b.dataset.bx){exportBackup();return}
   else if(b.dataset.bi){var bf=document.getElementById("bkf");if(bf)bf.click();return}
   else if(b.dataset.tab==="c"){if(!inSet){inSet=true;addNew=false;try{history.pushState({tr:1},"")}catch(x){}}}
