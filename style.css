@@ -101,3 +101,8 @@ ul>.gh:first-child{padding-top:4px}
 .ot{flex:1;min-width:0;font-size:16px;font-weight:500;word-break:break-word}
 .ot small{display:block;font-size:12px;color:var(--ac);font-weight:600}
 .x:disabled{opacity:.25;cursor:default}
+.ordh{display:flex;align-items:center;justify-content:space-between;width:100%;background:transparent;color:var(--tx);padding:0;border-radius:0;font-weight:400;text-align:left;min-height:44px}
+.ordl{display:block;flex:1;min-width:0}
+.ordl .ct,.ordl .ps{display:block}
+.chv{flex:none;color:var(--mu);font-size:20px;padding-left:12px;transition:transform .15s}
+.chv.up{transform:rotate(180deg)}
